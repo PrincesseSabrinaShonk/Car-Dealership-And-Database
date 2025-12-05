@@ -25,10 +25,9 @@ public class ConsoleHelper {
             catch(Exception ex){
                 scanner.nextLine();
                 System.out.println("Invalid Entry, please enter a whole number");
-                //ex.printStackTrace();
+//                ex.printStackTrace();
             }
         } while (!isValid);
-
         //after the catch
         return result;
 
@@ -48,12 +47,14 @@ public class ConsoleHelper {
         //after the catch
         return result;
     }
+
     public static float promptForFloat(String prompt){
         System.out.print(prompt + ": ");
         float result = scanner.nextFloat();
         scanner.nextLine();
         return result;
     }
+
     public static long promptForLong(String prompt){
         System.out.print(prompt + ": ");
         long result = scanner.nextLong();

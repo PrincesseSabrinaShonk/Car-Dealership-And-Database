@@ -11,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class VehicleDao {
-
     private Vehicle mapResultSetToVehicle(ResultSet rs) throws SQLException {
         return new Vehicle(
                 rs.getInt("dealership_id"),
@@ -29,21 +28,20 @@ public class VehicleDao {
     public List<Vehicle> getAllVehicles() {
         List<Vehicle> vehicles = new ArrayList<>();
         String sql = """
-            SELECT v.*, i.dealership_id 
-            FROM vehicles v 
-            JOIN inventory i ON v.VIN = i.VIN
-        """;
+                    SELECT v.*, i.dealership_id 
+                    FROM vehicles v 
+                    JOIN inventory i ON v.VIN = i.VIN
+                """;
 
         try (Connection conn = DataSource.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
              ResultSet rs = ps.executeQuery()) {
-
             while (rs.next()) {
                 vehicles.add(mapResultSetToVehicle(rs));
             }
-
-        } catch (Exception e) { e.printStackTrace(); }
-
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return vehicles;
     }
 
@@ -56,48 +54,54 @@ public class VehicleDao {
             JOIN inventory i ON v.VIN = i.VIN
             WHERE make = ? AND model = ?
         """;
-
         try (Connection conn = DataSource.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
             ps.setString(1, make);
             ps.setString(2, model);
-
             ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 vehicles.add(mapResultSetToVehicle(rs));
             }
-
         } catch (Exception e) { e.printStackTrace(); }
-
         return vehicles;
     }
 
-    public void deleteVehicle(String vin) {
-        String sql = "DELETE FROM vehicles WHERE vin = ?";
-        try (Connection conn = DataSource.getDataSource().getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-
-            ps.setString(1, vin);
-            ps.executeUpdate();
-
-        } catch (Exception e) { e.printStackTrace(); }
-    }
     public Vehicle getVehicleByVin(String vin) {
         String sql = """
-        SELECT v.*, i.dealership_id 
-        FROM vehicles v 
-        JOIN inventory i ON v.VIN = i.VIN
-        WHERE v.VIN = ?
-    """;
+            SELECT v.*, i.dealership_id 
+            FROM vehicles v 
+            JOIN inventory i ON v.VIN = i.VIN
+            WHERE UPPER(v.VIN) = UPPER(?)
+        """;
         try (Connection conn = DataSource.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, vin);
+            ps.setString(1, vin.trim());
+            System.out.println("Searching for VIN: " + vin.trim());
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
+                System.out.println(" Vehicle found!");
                 return mapResultSetToVehicle(rs);
+            } else {
+                System.out.println(" No vehicle found with that VIN");
             }
-        } catch (Exception e) { e.printStackTrace(); }
+        } catch (Exception e) {
+            System.out.println("ERROR searching for vehicle:");
+            e.printStackTrace();
+        }
+
         return null;
+    }
+
+    public void deleteVehicle(String vin) {
+        String sql = "DELETE FROM vehicles WHERE UPPER(vin) = UPPER(?)";
+        try (Connection conn = DataSource.getDataSource().getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, vin.trim());
+            int rowsDeleted = ps.executeUpdate();
+            System.out.println(" Rows deleted: " + rowsDeleted); // Debug line
+        } catch (Exception e) {
+            System.out.println("ERROR deleting vehicle:");
+            e.printStackTrace();
+        }
     }
 }

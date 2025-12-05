@@ -14,20 +14,25 @@ public class LeaseContractDao {
     public void addLease(LeaseContract contract) {
         String sql = "INSERT INTO lease_contracts (vin, ending_value, lease_fee) VALUES (?, ?, ?)";
 
-
         try (Connection conn = DataSource.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-
 
             ps.setString(1, contract.getVin());
             ps.setDouble(2, contract.getEndingValue());
             ps.setDouble(3, contract.getLeaseFee());
             ps.executeUpdate();
-        } catch (Exception e) { e.printStackTrace(); }
+
+            System.out.println(" Lease inserted successfully");
+
+        } catch (Exception e) {
+            System.out.println("ERROR adding lease:");
+            e.printStackTrace();
+        }
     }
+
     public List<LeaseContract> getAllLeases() {
         List<LeaseContract> leases = new ArrayList<>();
-        String sql = "SELECT * FROM lease_contracts"; // adjust table name
+        String sql = "SELECT * FROM lease_contracts";
 
         try (Connection conn = DataSource.getDataSource().getConnection();
              PreparedStatement ps = conn.prepareStatement(sql);
@@ -41,7 +46,10 @@ public class LeaseContractDao {
                 ));
             }
 
+            System.out.println("Retrieved " + leases.size() + " leases"); // Debug line
+
         } catch (SQLException e) {
+            System.out.println("ERROR retrieving leases:");
             e.printStackTrace();
         }
 
